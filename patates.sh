@@ -1,4 +1,6 @@
 #!/bin/bash
+# (c) 2013 Flyinva - Licence WTFPL http://www.wtfpl.net/txt/copying/
+# 
 #set -v
 
 Config=$1
@@ -7,6 +9,7 @@ then
     echo "Impossible de lire le fichier de config $Config"
     exit 1
 fi
+
 UserCodeLength=6
 AppCodeLength=4
 Grid=grid   # jpeg grid
@@ -113,19 +116,8 @@ function authentication {
     gridToText
     AccountCode=$(createAccountCode)
     [ $DEBUG ] && echo AccountCode: $AccountCode
-    #putProfile
     UserId=$(putProfile)
-    echo UserId: $UserId
-    #[ $DEBUG ] && echo UserId: $UserId
-
 }
-
-
-userId=1682095
-login='sylvain@collilieux.net'
-partnerId="1682095-35231343000-836"
-crId=836
-password=5678
 
 # Information du profil
 function getProfile {
@@ -142,7 +134,7 @@ function getProfile {
 }
 
 function getCrAbout {
-    curl \
+    curl --silent \
         --user "$HttpUserAndPassword" \
         --user-agent "$UserAgent" \
         --header "$Header" \
@@ -153,7 +145,7 @@ function getCrAbout {
 }
 
 function getAccounts {
-    curl \
+    curl --silent \
         --cookie "$cookie" \
         --user "$HttpUserAndPassword" \
         --user-agent "$UserAgent" \
@@ -163,13 +155,10 @@ function getAccounts {
         --request GET \
         --write-out '%{http_code}' \
         $UrlBase/portfolio/${UserId}/accounts/${crId}?version=$ApiVersion
-
-        echo "$UserEmail:$UserCode" \
-        echo $UrlBase/portfolio/${UserId}/accounts/${crId}?version=$ApiVersion
 }
 
 function getBalanceHistory {
-    curl \
+    curl --silent \
         --cookie "$cookie" \
         --user "$HttpUserAndPassword" \
         --user-agent "$UserAgent" \
@@ -182,7 +171,7 @@ function getBalanceHistory {
 }
 
 function getOperations {
-    curl \
+    curl --silent \
         --cookie "$cookie" \
         --user "$HttpUserAndPassword" \
         --user-agent "$UserAgent" \
@@ -191,7 +180,7 @@ function getOperations {
         --header "$Header" \
         --request GET \
         --write-out '%{http_code}' \
-        "$UrlBase/portfolio/$userId/accounts/$crId/$1/operations?&version=$ApiVersion"
+        "$UrlBase/portfolio/$UserId/accounts/$crId/$1/operations?&version=$ApiVersion"
 }
 
 [ $DEBUG ] && echo Bonjour patates

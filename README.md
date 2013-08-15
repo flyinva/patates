@@ -4,6 +4,8 @@ Il est peut probable que ce script puisse intéresser des non francophones, ce r
 
 Ce script permet d'obtenir des informations sur ses comptes du Crédit Agricole. Il utilise les mêmes interfaces que l'application pour smartphone « Mon Budget ». Elle nécessite un accès à la banque en ligne. Pour le moment, le script ne renvoie que du JSON. C'est juste une première étape pour aller plus loin.
 
+Merci à Valentin et Yoann.
+
 ## Utilisation
 
 Il est nécessaire de créer un fichier de configuration type :
