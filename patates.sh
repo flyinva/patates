@@ -121,76 +121,50 @@ function authentication {
     UserId=$(putProfile)
 }
 
-# Information du profil
-function getProfile {
-    curl \
-        --user "$UserEmail:$appCode" \
+function getUrl {
+    curl --silent \
+        --cookie "$cookie" \
+        --user "$HttpUserAndPassword" \
         --user-agent "$UserAgent" \
+        --header "Accept: application/$AcceptContent" \
         --header "$Header" \
         --request GET \
-        --header "Accept: application/$AcceptContent" \
         --write-out '%{http_code}' \
-        --referer "$UrlBase/configuration/profiles?version=$ApiVersion" \
-        "$UrlBase/configuration/profiles/${userId}/"
+        $UrlBase/$1?version=$ApiVersion
 }
 
 function getCrAbout {
-    curl --silent \
-        --user "$HttpUserAndPassword" \
-        --user-agent "$UserAgent" \
-        --header "$Header" \
-        --cookie $cookie \
-        --request GET \
-        --write-out '%{http_code}' \
-        "$UrlBase/about?crId=${cdId}"
+        getUrl "/about?crId=${cdId}"
 }
 
 function getAccounts {
-    curl --silent \
-        --cookie "$cookie" \
-        --user "$HttpUserAndPassword" \
-        --user-agent "$UserAgent" \
-        --header "Accept: application/$AcceptContent" \
-        --header "$Header" \
-        --request GET \
-        --write-out '%{http_code}' \
-        $UrlBase/portfolio/${UserId}/accounts/${crId}?version=$ApiVersion
+    getUrl "/portfolio/$UserId/accounts/$crId"
 }
 
 function getBalanceHistory {
-    curl --silent \
-        --cookie "$cookie" \
-        --user "$HttpUserAndPassword" \
-        --user-agent "$UserAgent" \
-        --header "Accept: application/$AcceptContent" \
-        --header "$Header" \
-        --request GET \
-        --write-out '%{http_code}' \
-        "$UrlBase/portfolio/$userId/accounts/$crId/balanceHistory?version=$ApiVersion"
+    getUrl "/portfolio/$UserId/accounts/$crId/balanceHistory"
+}
+
+function getRib {
+    getUrl "/portfolio/$UserId/accounts/$crId/$1/rib"
+}
+
+function getCategories {
+    getUrl "/configuration/profiles/$UserId/categories"
 }
 
 function getOperations {
-    curl --silent \
-        --cookie "$cookie" \
-        --user "$HttpUserAndPassword" \
-        --user-agent "$UserAgent" \
-        --header 'Accept: application/json' \
-        --header "$Header" \
-        --request GET \
-        --write-out '%{http_code}' \
-        "$UrlBase/portfolio/$UserId/accounts/$crId/$1/operations?&version=$ApiVersion"
+    getUrl "/portfolio/$UserId/accounts/$crId/$1/operations"
 }
-
-[ $DEBUG ] && echo Bonjour patates
 
 [ $DEBUG ] && echo Tous les getFromIni
 UserCode=$(getFromIni UserCode)
 AppCode=$(getFromIni AppCode)
 UserAccount=$(getFromIni UserAccount)
 UserEmail=$(getFromIni UserEmail)
-UserLocation=$(getFromIni Location)
+UserLocation=$(getFromIni UserLocation)
 AcceptContent=$(getFromIni AcceptContent)
-AcceptContent=${AcceptContent-json}
+AcceptContent=${AcceptContent:-json}
 HttpUserAndPassword="$UserEmail:$AppCode"
 
 if [ ${#UserCode} -ne $UserCodeLength ]
@@ -201,17 +175,10 @@ fi
 
 if [ ${#AppCode} -ne $AppCodeLength ]
 then
-    echo "Le code de l'appplication est de ${#AppCode} chiffres au lieu de $AppCodeLength !"
+    echo "Le code de l'application est de ${#AppCode} chiffres au lieu de $AppCodeLength !"
     exit 1
 fi
 
 crId=$(getLocation $UserLocation)
-[ $DEBUG ] && echo crId: $crId
-
 authentication
-[ $DEBUG ] && echo UserId: $UserId
-
-
-#getAccounts
-#getOperations $UserAccount
 
