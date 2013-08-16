@@ -86,6 +86,8 @@ function createAccountCode {
     # 8 : indice de la valeur 2 dans gridTextExpanded
     # etc.
     local i
+    local AccountCode
+    AccountCode=''
     for i in $(seq 0 $(( $UserCodeLength -1 )) )
     do
         AccountCode="$AccountCode${gridTextExpanded[${UserCode:$i:1}]}"
@@ -126,8 +128,7 @@ function getProfile {
         --user-agent "$UserAgent" \
         --header "$Header" \
         --request GET \
-        --header 'Accept: application/json' \
-        --header 'Content-Type: application/json' \
+        --header "Accept: application/$AcceptContent" \
         --write-out '%{http_code}' \
         --referer "$UrlBase/configuration/profiles?version=$ApiVersion" \
         "$UrlBase/configuration/profiles/${userId}/"
@@ -149,8 +150,7 @@ function getAccounts {
         --cookie "$cookie" \
         --user "$HttpUserAndPassword" \
         --user-agent "$UserAgent" \
-        --header 'Accept: application/json' \
-        --header 'Content-Type: application/json' \
+        --header "Accept: application/$AcceptContent" \
         --header "$Header" \
         --request GET \
         --write-out '%{http_code}' \
@@ -162,8 +162,7 @@ function getBalanceHistory {
         --cookie "$cookie" \
         --user "$HttpUserAndPassword" \
         --user-agent "$UserAgent" \
-        --header 'Accept: application/json' \
-        --header 'Content-Type: application/json' \
+        --header "Accept: application/$AcceptContent" \
         --header "$Header" \
         --request GET \
         --write-out '%{http_code}' \
@@ -176,7 +175,6 @@ function getOperations {
         --user "$HttpUserAndPassword" \
         --user-agent "$UserAgent" \
         --header 'Accept: application/json' \
-        --header 'Content-Type: application/json' \
         --header "$Header" \
         --request GET \
         --write-out '%{http_code}' \
@@ -191,6 +189,9 @@ AppCode=$(getFromIni AppCode)
 UserAccount=$(getFromIni UserAccount)
 UserEmail=$(getFromIni UserEmail)
 UserLocation=$(getFromIni Location)
+AcceptContent=$(getFromIni AcceptContent)
+AcceptContent=${AcceptContent-json}
+HttpUserAndPassword="$UserEmail:$AppCode"
 
 if [ ${#UserCode} -ne $UserCodeLength ]
 then
@@ -210,8 +211,7 @@ crId=$(getLocation $UserLocation)
 authentication
 [ $DEBUG ] && echo UserId: $UserId
 
-HttpUserAndPassword="$UserEmail:$AppCode"
 
-getAccounts
-getOperations $UserAccount
+#getAccounts
+#getOperations $UserAccount
 
