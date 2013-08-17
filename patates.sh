@@ -69,7 +69,6 @@ function gridToText {
     gridTextExpanded=()
     gridAccountCode=()
 
-
     for i in $(seq 0 9)
     do
         gridTextExpanded[${gridText:$i:1}]=$i
@@ -137,6 +136,7 @@ function getCrAbout {
 }
 
 function getAccounts {
+    authentification
     getUrl "/portfolio/$UserId/accounts/$crId"
 }
 
@@ -179,5 +179,4 @@ then
 fi
 
 crId=$(getLocation $UserLocation)
-#authentication
 
