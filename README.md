@@ -87,7 +87,7 @@ L'authentification est faite par un HTTP PUT de données JSON.
 
 * accountCode : la combinaison obtenue à partir du mot de passe web et du pavé numérique envoyé par le serveur
 * accountNumber : un numéro de compte valide (a priori 11 chiffres)
-* crId : [identifiant de la caisse régionale][Identifiant de la caisse régionale]
+* crId : identifiant de la caisse régionale
 * exportEmail, login : adresse mail entrée dans l'application
 * password : code à 4 chiffres demandées par l'application
 
