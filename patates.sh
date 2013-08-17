@@ -78,8 +78,6 @@ function gridToText {
 }
 
 function createAccountCode {
-
-    # On déduit la combinaison 
     # Si le pavé reçu est 0987654321
     # Le code utilisateur est 123456
     # On envoie 987653
@@ -96,11 +94,10 @@ function createAccountCode {
     echo $AccountCode
 }
 
-# Requête d'authentification par PUT
+# Requête d'authentification avec un HTTP PUT de données JSON
 function putProfile {
-
-    # authentification
-    #echo "DEBUG: authentification"
+    
+    # Il faut reprendre le cookie reçu avec l'image du pavé numérique
     curl --silent \
         --user-agent "$UserAgent" \
         --header "$Header" \
@@ -109,7 +106,7 @@ function putProfile {
         --header 'Accept: application/json' \
         --header 'Content-Type: application/json' \
         --data "{\"accountCode\":\"$AccountCode\",\"accountNumber\":\"$UserAccount\",\"crId\":\"$crId\",\"exportEmail\":\"$UserEmail\",\"login\":\"$UserEmail\",\"password\":\"$AppCode\"}" \
-        "$UrlBase/configuration/profiles?version=$ApiVersion" | cut -d',' -f1 | cut -d':' -f2 | sed s/\"//g
+        "$UrlBase/configuration/profiles?version=$ApiVersion" | jq '.userid | tonumber'
 }
 
 function authentication {
