@@ -1,14 +1,7 @@
 #!/bin/bash
 # (c) 2013 Flyinva - Licence WTFPL http://www.wtfpl.net/txt/copying/
 # 
-#set -v
 
-Config=$1
-if [ ! -r $Config ]
-then
-    echo "Impossible de lire le fichier de config $Config"
-    exit 1
-fi
 
 UserCodeLength=6
 AppCodeLength=4
@@ -154,27 +147,32 @@ function getOperations {
     getUrl "/portfolio/$UserId/accounts/$crId/$1/operations"
 }
 
-[ $DEBUG ] && echo Tous les getFromIni
-UserCode=$(getFromIni UserCode)
-AppCode=$(getFromIni AppCode)
-UserAccount=$(getFromIni UserAccount)
-UserEmail=$(getFromIni UserEmail)
-UserLocation=$(getFromIni UserLocation)
-AcceptContent=$(getFromIni AcceptContent)
-AcceptContent=${AcceptContent:-json}
-HttpUserAndPassword="$UserEmail:$AppCode"
 
-if [ ${#UserCode} -ne $UserCodeLength ]
+Config=$1
+if [ ! -r "$Config" ]
 then
-    echo "Le code du compte est de ${#UserCode} chiffres au lieu de $UserCodeLength !"
-    exit 1
-fi
+    echo "Impossible de lire le fichier de config $Config"
+else
+    [ $DEBUG ] && echo Tous les getFromIni
+    UserCode=$(getFromIni UserCode)
+    AppCode=$(getFromIni AppCode)
+    UserAccount=$(getFromIni UserAccount)
+    UserEmail=$(getFromIni UserEmail)
+    UserLocation=$(getFromIni UserLocation)
+    AcceptContent=$(getFromIni AcceptContent)
+    AcceptContent=${AcceptContent:-json}
+    HttpUserAndPassword="$UserEmail:$AppCode"
 
-if [ ${#AppCode} -ne $AppCodeLength ]
-then
-    echo "Le code de l'application est de ${#AppCode} chiffres au lieu de $AppCodeLength !"
-    exit 1
-fi
+    if [ ${#UserCode} -ne $UserCodeLength ]
+    then
+        echo "Le code du compte est de ${#UserCode} chiffres au lieu de $UserCodeLength !"
+    fi
 
-crId=$(getLocation $UserLocation)
+    if [ ${#AppCode} -ne $AppCodeLength ]
+    then
+        echo "Le code de l'application est de ${#AppCode} chiffres au lieu de $AppCodeLength !"
+    fi
+
+    crId=$(getLocation $UserLocation)
+fi
 
