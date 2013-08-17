@@ -42,3 +42,60 @@ getOperations 12345678901 | jq ".operation[] | select(.date > \"$(date -d'now - 
 ```
 
 Pour le moment, le script renvoie la liste des comptes et les opérations du coompte du fichier de configuration en JSON.
+
+
+## Fonctionnement
+
+### Identifiant de la caisse régionale
+
+Il faut commencer par trouver l'identifiant de la caisse régionale en fonction du département : `getLocation`.
+
+
+### Pavé numérique pour l'authentification
+
+Le serveur envoie un pavé numérique de 10 chiffres dans un ordre aléatoire (`getGrid`). Cette grille est découpée en 10 images dont on supprime le cadre qui gêne l'OCR. On assemble les 10 chiffres dans une seule image en respectant l'odre (`gridToImages`) puis on l'analyse par OCR (`gridToText`).
+
+L'application demande le mot de passe web qui permet d'accéder au site web de gestion. Le pavé numérique sert à encoder ce mot de passe. Si le mot de passe contient le chiffre 1, il faut envoyer l'indice du chiffre 1 dans le pavé numérique.
+
+Exemple :
+* Pavé reçu : 0987654321
+* Code utilisateur : 123456
+* On envoie : 987653
+* 9 : indice de la valeur 1 dans le le pavé numérique
+* 8 : indice de la valeur 2
+* etc.
+
+
+
+### Authentification
+
+L'application mobile demande une adresse mail et un code à 4 chiffres censés protéger l'accès à l'application (elle stocke des données en local dans une base sqlite). Au premier envoi au serveur, le requête crée un compte avec cette adresse mail et ce code à 4 chiffres. Si on utilise la même adresse mail sur un autre appareil, il faut utiliser le même code.
+
+L'authentification est faite par un HTTP PUT de données JSON.
+
+```json
+{
+    "accountCode"   : "123456",
+    "accountNumber" : "12345678901",
+    "crId"          : "888",
+    "exportEmail"   : "toto@titi.fr",
+    "login"         : "toto@titi.fr",
+    "password"      : "1234"
+}
+```
+
+* accountCode : la combinaison obtenue à partir du mot de passe web et du pavé numérique envoyé par le serveur
+* accountNumber : un numéro de compte valide (a priori 11 chiffres)
+* crId : [identifiant de la caisse régionale][Identifiant de la caisse régionale]
+* exportEmail, login : adresse mail entrée dans l'application
+* password : code à 4 chiffres demandées par l'application
+
+Après le PUT, si l'utilisateur n'existe par, il est créé. Le JSON de retour indique si l'opération s'est bien passée. Certains paramètre de ce retour sont utiles ensuite (userId).
+
+Il faut refaire ce PUT avant certaines opérations (liste des comptes, virement, etc.) et utiliser le cookie reçu pour continuer.
+
+
+### Requêtes au serveur
+
+Après l'authentification, l'accès aux pages nécessitent une authentification `HTTP basic`. Il faut utiliser le couple adresse mail + code à 4 chiffres. La plupart des requêtes sont des HTTP GET avec certains paramètres dans le chemin de l'URL (exemple : `/portfolio/$UserId/accounts/$crId`).
+
