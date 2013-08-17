@@ -107,7 +107,6 @@ function putProfile {
         --request PUT \
         --header 'Accept: application/json' \
         --header 'Content-Type: application/json' \
-        --write-out '%{http_code}' \
         --data "{\"accountCode\":\"$AccountCode\",\"accountNumber\":\"$UserAccount\",\"crId\":\"$crId\",\"exportEmail\":\"$UserEmail\",\"login\":\"$UserEmail\",\"password\":\"$AppCode\"}" \
         "$UrlBase/configuration/profiles?version=$ApiVersion" | cut -d',' -f1 | cut -d':' -f2 | sed s/\"//g
 }
@@ -129,7 +128,6 @@ function getUrl {
         --header "Accept: application/$AcceptContent" \
         --header "$Header" \
         --request GET \
-        --write-out '%{http_code}' \
         $UrlBase/$1?version=$ApiVersion
 }
 
