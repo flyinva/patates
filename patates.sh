@@ -46,7 +46,7 @@ function getGrid {
     rm cookies
 }
 
-function gridToImages {
+function gridToImage {
     # Découpage de l'image pour extraire chaque chiffre dans une image
     convert $Grid -crop 32x32+16+16 ${Grid}01.jpg
     convert $Grid -crop 32x32+70+16 ${Grid}02.jpg
@@ -59,6 +59,7 @@ function gridToImages {
     convert $Grid -crop 32x32+182+72 ${Grid}09.jpg
     convert $Grid -crop 32x32+238+72 ${Grid}10.jpg
     convert $Grid*.jpg +append new${Grid}.jpg
+    rm grid*
 }
 
 function gridToText {
@@ -113,7 +114,7 @@ function putProfile {
 
 function authentication {
     getGrid
-    gridToImages
+    gridToImage
     gridToText
     AccountCode=$(createAccountCode)
     [ $DEBUG ] && echo AccountCode: $AccountCode
@@ -178,5 +179,5 @@ then
 fi
 
 crId=$(getLocation $UserLocation)
-authentication
+#authentication
 
