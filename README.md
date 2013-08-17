@@ -8,6 +8,12 @@ Merci à Valentin et Yoann pour leur aide.
 
 ## Utilisation
 
+Le script utilise :
+ - [hImageMagick](http://www.imagemagick.org/script/)
+ - [gocr](http://jocr.sourceforge.net/)
+ - [jq](http://stedolan.github.io/jq/manual) pour traiter le JSON
+
+
 Il est nécessaire de créer un fichier de configuration type :
 
 ```
