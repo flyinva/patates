@@ -8,7 +8,7 @@ Merci à Valentin et Yoann pour leur aide.
 
 ## Utilisation
 
-Le script utilise :
+Le script utilise ces logiciels libres :
  - [hImageMagick](http://www.imagemagick.org/script/)
  - [gocr](http://jocr.sourceforge.net/)
  - [jq](http://stedolan.github.io/jq/manual) pour traiter le JSON
