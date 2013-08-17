@@ -16,6 +16,7 @@ UserCode=123456
 AppCode=1234
 UserEmail=Robert@Michu.fr
 UserLocation=88
+AcceptContent=xml
 ```
 
  - UserAccount : n° de compte
@@ -23,12 +24,13 @@ UserLocation=88
  - AppCode : code de l'application Mon Budget (pour le moment, le script ne créé pas ce code)
  - UserEmail : email déclarée dans l'application Mon Budget
  - UserLocation : département de la caisse régionale
+ - AcceptContent : on peut demander au serveur de recevoir du XML (valeur par défaut : JSON)
 
 Lancement du script :
 
 ```
-source patates.sh config
-authentication ; getAccounts
+source patates.sh fichierconfig
+getAccounts
 getOperations
 getBalanceHistory
 ```
@@ -36,26 +38,25 @@ getBalanceHistory
 Il est possible de combiner avec l'excellent [jq](http://stedolan.github.io/jq/manual).
 
 ```
-authentication ;  getAccounts | jq ".account[] | select(.isExternal==false) | {Solde: .balance,No: .id, label: .label, Detenteur: .holder}"
+getAccounts | jq ".account[] | select(.isExternal==false) | {Solde: .balance,No: .id, label: .label, Detenteur: .holder}"
 getOperations 12345678901 | jq ".operation[] | select(.date > \"$(date -d'now - 5 days' +%Y%m%d)\" ) | {montant: .amount, label: .longLabel, date: .date}"
 
 ```
-
-Pour le moment, le script renvoie la liste des comptes et les opérations du coompte du fichier de configuration en JSON.
 
 
 ## Fonctionnement
 
 ### Identifiant de la caisse régionale
 
-Il faut commencer par trouver l'identifiant de la caisse régionale en fonction du département : `getLocation`.
+Il faut commencer par trouver l'identifiant de la caisse régionale en fonction du département : fonction `getLocation`.
 
 
 ### Pavé numérique pour l'authentification
 
-Le serveur envoie un pavé numérique de 10 chiffres dans un ordre aléatoire (`getGrid`). Cette grille est découpée en 10 images dont on supprime le cadre qui gêne l'OCR. On assemble les 10 chiffres dans une seule image en respectant l'odre (`gridToImages`) puis on l'analyse par OCR (`gridToText`).
+L'application demande le mot de passe web qui permet d'accéder au site web de gestion. Un pavé numérique aléatoire sert à encoder ce mot de passe (comme avec le site web mobile).
 
-L'application demande le mot de passe web qui permet d'accéder au site web de gestion. Le pavé numérique sert à encoder ce mot de passe. Si le mot de passe contient le chiffre 1, il faut envoyer l'indice du chiffre 1 dans le pavé numérique.
+Le serveur envoie un pavé numérique de 10 chiffres dans un ordre aléatoire (`getGrid`). Cette grille est découpée en 10 images dont on supprime le cadre qui gêne l'OCR. On assemble les 10 chiffres dans une seule image en respectant l'odre (`gridToImages`) puis on l'analyse par OCR (`gridToText`). Le script utilise [gocr](http://jocr.sourceforge.net/) mais n'importe quel OCR devrait faire l'affaire.
+
 
 Exemple :
 * Pavé reçu : 0987654321
@@ -98,4 +99,6 @@ Il faut refaire ce PUT avant certaines opérations (liste des comptes, virement,
 ### Requêtes au serveur
 
 Après l'authentification, l'accès aux pages nécessitent une authentification `HTTP basic`. Il faut utiliser le couple adresse mail + code à 4 chiffres. La plupart des requêtes sont des HTTP GET avec certains paramètres dans le chemin de l'URL (exemple : `/portfolio/$UserId/accounts/$crId`).
+
+Pour certaines pages, il faut repasser par l'authentification par le pavé numérique (les virements notamment).
 
