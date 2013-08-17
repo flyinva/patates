@@ -91,7 +91,25 @@ L'authentification est faite par un HTTP PUT de données JSON.
 * exportEmail, login : adresse mail entrée dans l'application
 * password : code à 4 chiffres demandées par l'application
 
-Après le PUT, si l'utilisateur n'existe par, il est créé. Le JSON de retour indique si l'opération s'est bien passée. Certains paramètre de ce retour sont utiles ensuite (userId).
+Après le PUT, si l'utilisateur n'existe par, il est créé. Le JSON de retour indique si l'opération s'est bien passée. Certains paramètre de ce retour sont utiles ensuite notamment le `userId` (fonction `putProfile`).
+
+Retour suite à une création de compte : 
+
+```json
+{
+    "userid"        :   "1234567",
+    "partnerId"     :   "1234567-12345678901-888",
+    "isNew"         :   true,
+    "warnings"      :   [],
+    "errors"        :   [],
+    "infos"         :   [
+        { "message"     :   "addProfile" },
+        { "message"     :   "OK" }
+    ]
+}
+```
+
+Si l'utilisateur (adresse mail) existait déjà, `isNew` serait à `false`.
 
 Il faut refaire ce PUT avant certaines opérations (liste des comptes, virement, etc.) et utiliser le cookie reçu pour continuer.
 
