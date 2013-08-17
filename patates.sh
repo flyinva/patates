@@ -17,6 +17,7 @@ UrlBase='https://ibudget.iphone.credit-agricole.fr/budget/iphoneservice'
 UserAgent='MonBudget/2.0.2'
 Header='X-Credit-Agricole-Device: innotek GmbH VirtualBox/Android/4.3'
 ApiVersion=4
+ocrCommand=gocr
 
 function getFromIni {
     grep $1 $Config | cut -d'=' -f 2
@@ -65,7 +66,7 @@ function gridToImage {
 function gridToText {
     # gridTextExpanded : chaque indice du tableau contient un chiffre de la grille
     # gridText c'est la chaine de caractère correspond au pavé numérique
-    gridText=$(gocr new$Grid.jpg)
+    gridText=$($ocrCommand new$Grid.jpg)
     gridTextExpanded=()
     gridAccountCode=()
 
@@ -136,7 +137,7 @@ function getCrAbout {
 }
 
 function getAccounts {
-    authentification
+    authentication
     getUrl "/portfolio/$UserId/accounts/$crId"
 }
 
