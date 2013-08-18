@@ -1,6 +1,7 @@
 #!/bin/bash
 # (c) 2013 Flyinva - Licence WTFPL http://www.wtfpl.net/txt/copying/
-# 
+# Utilisez ce script en connaissance de cause et à vos risques et périls.
+# Gardez vos mots de passe sous votre contrôle.
 
 
 UserCodeLength=6
