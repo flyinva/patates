@@ -147,6 +147,22 @@ function getOperations {
     getUrl "/portfolio/$UserId/accounts/$crId/$1/operations"
 }
 
+# Virement
+function putTransfer {
+    # nécessaire avant chaque opération
+    authentication
+
+    # Il faut reprendre le cookie reçu avec l'image du pavé numérique
+    curl --verbose \
+        --user-agent "$UserAgent" \
+        --header "$Header" \
+        --cookie $cookie \
+        --user "$HttpUserAndPassword" \
+        --request POST \
+        --header 'Accept: application/json' \
+        --data "fromAccountId=$1&toAccountId=$2&amount=$3&label=$4" \
+        "$UrlBase/portfolio/$UserId/operations/$crId/transfer?version=$ApiVersion" | jq '.infos[1].message'
+}
 
 Config=$1
 if [ ! -r "$Config" ]
