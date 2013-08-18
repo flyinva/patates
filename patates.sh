@@ -5,7 +5,7 @@
 
 UserCodeLength=6
 AppCodeLength=4
-Grid=grid   # jpeg grid
+Grid=/tmp/grid   # jpeg grid
 UrlBase='https://ibudget.iphone.credit-agricole.fr/budget/iphoneservice'
 UserAgent='MonBudget/2.0.2'
 Header='X-Credit-Agricole-Device: innotek GmbH VirtualBox/Android/4.3'
@@ -52,22 +52,22 @@ function gridToImage {
     convert $Grid -crop 32x32+126+72 ${Grid}08.jpg
     convert $Grid -crop 32x32+182+72 ${Grid}09.jpg
     convert $Grid -crop 32x32+238+72 ${Grid}10.jpg
-    convert $Grid*.jpg +append new${Grid}.jpg
-    rm grid*
+    convert $Grid*.jpg +append ${Grid}new.jpg
 }
 
 function gridToText {
     # gridTextExpanded : chaque indice du tableau contient un chiffre de la grille
     # gridText c'est la chaine de caractère correspond au pavé numérique
-    gridText=$($OcrCommand new$Grid.jpg)
+    gridText=$($OcrCommand ${Grid}new.jpg)
     gridTextExpanded=()
     gridAccountCode=()
-
+    
+    local i
     for i in $(seq 0 9)
     do
         gridTextExpanded[${gridText:$i:1}]=$i
     done
-    unset i
+    rm $Grid*
 }
 
 function createAccountCode {
