@@ -154,7 +154,7 @@ function putTransfer {
     authentication
 
     # Il faut reprendre le cookie reçu avec l'image du pavé numérique
-    curl --verbose \
+    curl --silent \
         --user-agent "$UserAgent" \
         --header "$Header" \
         --cookie $cookie \
