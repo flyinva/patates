@@ -3,13 +3,15 @@
 # Utilisez ce script en connaissance de cause et à vos risques et périls.
 # Gardez vos mots de passe sous votre contrôle.
 
+#ALL_PROXY='http://127.0.0.1:8080'
+CURL='curl --silent --cookie cookies --cookie-jar cookies -k'
 
 UserCodeLength=6
 AppCodeLength=4
 Grid=/tmp/grid   # jpeg grid
 UrlBase='https://ibudget.iphone.credit-agricole.fr/budget/iphoneservice'
-UserAgent='MonBudget/2.0.2'
-Header='X-Credit-Agricole-Device: innotek GmbH VirtualBox/Android/4.3'
+UserAgent='MonBudget/2.0.5'
+Header='X-Credit-Agricole-Device: patates/Android/4.3'
 ApiVersion=4
 OcrCommand=gocr
 
@@ -19,10 +21,11 @@ function getFromIni {
 
 function getLocation {
     # Permet de récupérer le crId en fonction du département
-    curl --silent \
+    #curl --silent --cookie cookies --cookie-jar cookies -k \
+    $CURL \
         --user-agent "$UserAgent" \
         --header 'Accept: application/json' \
-        $UrlBase/geoLocation/cr?q=$1 | cut -d',' -f2 | cut -d'"' -f 4
+        $UrlBase/geoLocation/cr?q=$1 | jq '.caisseRegionale[0].id | tonumber'
 }
 
 function getGrid {
@@ -30,15 +33,11 @@ function getGrid {
     rm $Grid* 2>/dev/null
 
     # ATTENTION, ce cookie est nécessaire partout !
-    # pas si sûr…
-    curl --silent \
-        --cookie-jar cookies \
+    #curl --silent --cookie cookies --cookie-jar cookies -k \
+    $CURL \
         --user-agent "$UserAgent" \
         --header "$Header" \
         $UrlBase/authentication/grid > $Grid
-
-    cookie=$(awk '/budget/ {print $6"="$7}' cookies)
-    rm cookies
 }
 
 function gridToImage {
@@ -89,13 +88,28 @@ function createAccountCode {
 }
 
 # Requête d'authentification avec un HTTP PUT de données JSON
+# depuis la v2.0.5 de monbudget
+function postAuthentication {
+    
+    # Il faut reprendre le cookie reçu avec l'image du pavé numérique
+    $CURL \
+        --user-agent "$UserAgent" \
+        --header "$Header" \
+        --user "$HttpUserAndPassword" \
+        --request POST \
+        --header 'Accept: application/json' \
+        --data "bamCode=$AccountCode&login=$UserEmail&accountNumber=$UserAccount&crId=$crId" \
+        "$UrlBase/authentication/strong/v1" | jq '.userid | tonumber'
+}
+
+# Requête d'authentification avec un HTTP PUT de données JSON
+# ce n'est plus ce rq
 function putProfile {
     
     # Il faut reprendre le cookie reçu avec l'image du pavé numérique
-    curl --silent \
+    $CURL \
         --user-agent "$UserAgent" \
         --header "$Header" \
-        --cookie $cookie \
         --request PUT \
         --header 'Accept: application/json' \
         --header 'Content-Type: application/json' \
@@ -109,22 +123,21 @@ function authentication {
     gridToText
     AccountCode=$(createAccountCode)
     [ $DEBUG ] && echo AccountCode: $AccountCode
-    UserId=$(putProfile)
+    UserId=$(postAuthentication)
 }
 
 function getUrl {
-    curl --silent \
-        --cookie "$cookie" \
+    $CURL \
         --user "$HttpUserAndPassword" \
         --user-agent "$UserAgent" \
         --header "Accept: application/$AcceptContent" \
         --header "$Header" \
         --request GET \
-        $UrlBase/$1?version=$ApiVersion
+        $UrlBase$1?version=$ApiVersion
 }
 
 function getCrAbout {
-        getUrl "/about?crId=${cdId}"
+    getUrl "/about?crId=${cdId}"
 }
 
 function getAccounts {
@@ -154,10 +167,9 @@ function putTransfer {
     authentication
 
     # Il faut reprendre le cookie reçu avec l'image du pavé numérique
-    curl --silent \
+    $CURL \
         --user-agent "$UserAgent" \
         --header "$Header" \
-        --cookie $cookie \
         --user "$HttpUserAndPassword" \
         --request POST \
         --header 'Accept: application/json' \
