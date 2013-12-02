@@ -4,16 +4,20 @@
 # Gardez vos mots de passe sous votre contrôle.
 
 #ALL_PROXY='http://127.0.0.1:8080'
-CURL='curl --silent --cookie cookies --cookie-jar cookies -k'
 
 UserCodeLength=6
 AppCodeLength=4
 Grid=/tmp/grid   # jpeg grid
 UrlBase='https://ibudget.iphone.credit-agricole.fr/budget/iphoneservice'
 UserAgent='MonBudget/2.0.5'
-Header='X-Credit-Agricole-Device: patates/Android/4.3'
+HeaderCreditAgricole='X-Credit-Agricole-Device:patates/Android/4.3'
+HeaderAccept='Accept:application/json'
+CookieFile=/tmp/cookie.$$
+
 ApiVersion=4
 OcrCommand=gocr
+
+CURL="curl --silent --cookie $CookieFile --cookie-jar $CookieFile --header $HeaderCreditAgricole --user-agent $UserAgent"
 
 function getFromIni {
     grep $1 $Config | cut -d'=' -f 2
@@ -21,11 +25,9 @@ function getFromIni {
 
 function getLocation {
     # Permet de récupérer le crId en fonction du département
-    #curl --silent --cookie cookies --cookie-jar cookies -k \
-    $CURL \
-        --user-agent "$UserAgent" \
-        --header 'Accept: application/json' \
-        $UrlBase/geoLocation/cr?q=$1 | jq '.caisseRegionale[0].id | tonumber'
+   $CURL \
+       --header $HeaderAccept \
+       "$UrlBase/geoLocation/cr?q=$1" | jq '.caisseRegionale[0].id | tonumber'
 }
 
 function getGrid {
@@ -33,11 +35,7 @@ function getGrid {
     rm $Grid* 2>/dev/null
 
     # ATTENTION, ce cookie est nécessaire partout !
-    #curl --silent --cookie cookies --cookie-jar cookies -k \
-    $CURL \
-        --user-agent "$UserAgent" \
-        --header "$Header" \
-        $UrlBase/authentication/grid > $Grid
+    $CURL "$UrlBase/authentication/grid" > $Grid
 }
 
 function gridToImage {
@@ -93,11 +91,9 @@ function postAuthentication {
     
     # Il faut reprendre le cookie reçu avec l'image du pavé numérique
     $CURL \
-        --user-agent "$UserAgent" \
-        --header "$Header" \
         --user "$HttpUserAndPassword" \
+        --header $HeaderAccept \
         --request POST \
-        --header 'Accept: application/json' \
         --data "bamCode=$AccountCode&login=$UserEmail&accountNumber=$UserAccount&crId=$crId" \
         "$UrlBase/authentication/strong/v1" | jq '.userid | tonumber'
 }
@@ -108,8 +104,6 @@ function putProfile {
     
     # Il faut reprendre le cookie reçu avec l'image du pavé numérique
     $CURL \
-        --user-agent "$UserAgent" \
-        --header "$Header" \
         --request PUT \
         --header 'Accept: application/json' \
         --header 'Content-Type: application/json' \
@@ -129,9 +123,7 @@ function authentication {
 function getUrl {
     $CURL \
         --user "$HttpUserAndPassword" \
-        --user-agent "$UserAgent" \
-        --header "Accept: application/$AcceptContent" \
-        --header "$Header" \
+        --header $HeaderAccept \
         --request GET \
         $UrlBase$1?version=$ApiVersion
 }
@@ -162,19 +154,16 @@ function getOperations {
 }
 
 # Virement
-function putTransfer {
+function postTransfer {
     # nécessaire avant chaque opération
     authentication
 
     # Il faut reprendre le cookie reçu avec l'image du pavé numérique
     $CURL \
-        --user-agent "$UserAgent" \
-        --header "$Header" \
         --user "$HttpUserAndPassword" \
         --request POST \
-        --header 'Accept: application/json' \
-        --data "fromAccountId=$1&toAccountId=$2&amount=$3&label=$4" \
-        "$UrlBase/portfolio/$UserId/operations/$crId/transfer?version=$ApiVersion" | jq '.infos[1].message'
+        --data "amount=$3&toIBAN=$2&cadevi=EUR&label=&fromIBAN=$1&refOp=$4" \
+        "$UrlBase/portfolio/$UserId/$crId/$UserId-$1-$cdId/operations/transfer" | jq '.infos[1].message'
 }
 
 Config=$1
