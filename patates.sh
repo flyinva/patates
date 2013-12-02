@@ -85,7 +85,7 @@ function createAccountCode {
     echo $AccountCode
 }
 
-# Requête d'authentification avec un HTTP PUT de données JSON
+# Requête d'authentification avec un HTTP POST d'un formulaire
 # depuis la v2.0.5 de monbudget
 function postAuthentication {
     
@@ -98,19 +98,6 @@ function postAuthentication {
         "$UrlBase/authentication/strong/v1" | jq '.userid | tonumber'
 }
 
-# Requête d'authentification avec un HTTP PUT de données JSON
-# ce n'est plus ce rq
-function putProfile {
-    
-    # Il faut reprendre le cookie reçu avec l'image du pavé numérique
-    $CURL \
-        --request PUT \
-        --header 'Accept: application/json' \
-        --header 'Content-Type: application/json' \
-        --data "{\"accountCode\":\"$AccountCode\",\"accountNumber\":\"$UserAccount\",\"crId\":\"$crId\",\"exportEmail\":\"$UserEmail\",\"login\":\"$UserEmail\",\"password\":\"$AppCode\"}" \
-        "$UrlBase/configuration/profiles?version=$ApiVersion" | jq '.userid | tonumber'
-}
-
 function authentication {
     getGrid
     gridToImage
@@ -118,6 +105,12 @@ function authentication {
     AccountCode=$(createAccountCode)
     [ $DEBUG ] && echo AccountCode: $AccountCode
     UserId=$(postAuthentication)
+
+    if [ "$UserId" == "" ]
+    then
+        echo "Erreur d'authentification !"
+        exit 4
+    fi
 }
 
 function getUrl {
@@ -154,16 +147,21 @@ function getOperations {
 }
 
 # Virement
-function postTransfer {
+# $1 : fromIBAN
+# $2 : toIBAN
+# $3 : amount
+# $4 : refOp
+function transfer {
     # nécessaire avant chaque opération
     authentication
 
     # Il faut reprendre le cookie reçu avec l'image du pavé numérique
     $CURL \
+        --header $HeaderAccept \
         --user "$HttpUserAndPassword" \
         --request POST \
         --data "amount=$3&toIBAN=$2&cadevi=EUR&label=&fromIBAN=$1&refOp=$4" \
-        "$UrlBase/portfolio/$UserId/$crId/$UserId-$1-$cdId/operations/transfer" | jq '.infos[1].message'
+        "$UrlBase/portfolio/$UserId/$crId/$UserId-$1-$crId/operations/transfer" | jq '.errors[],.warnings[]'
 }
 
 Config=$1
